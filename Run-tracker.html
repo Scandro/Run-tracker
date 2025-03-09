@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Tracker</title>
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        header {
+            background-color: #2563eb;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        /* Cards */
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Permission Alert */
+        .permission-alert {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .permission-alert .icon-text {
+            display: flex;
+            align-items: center;
+        }
+        
+        .permission-alert svg {
+            margin-right: 0.5rem;
+            fill: #f59e0b;
+        }
+        
+        .permission-alert button {
+            margin-top: 0.5rem;
+            align-self: flex-start;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stat-box {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .btn-round {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-round:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-start {
+            background-color: #10b981;
+        }
+        
+        .btn-start:hover:not(:disabled) {
+            background-color: #059669;
+        }
+        
+        .btn-pause {
+            background-color: #f59e0b;
+        }
+        
+        .btn-pause:hover:not(:disabled) {
+            background-color: #d97706;
+        }
+        
+        .btn-stop {
+            background-color: #ef4444;
+        }
+        
+        .btn-stop:hover:not(:disabled) {
+            background-color: #dc2626;
+        }
+        
+        .btn-reset {
+            background-color: #6b7280;
+        }
+        
+        .btn-reset:hover:not(:disabled) {
+            background-color: #4b5563;
+        }
+        
+        .btn-save {
+            background-color: #3b82f6;
+        }
+        
+        .btn-save:hover:not(:disabled) {
+            background-color: #2563eb;
+        }
+        
+        .save-status {
+            text-align: center;
+            color: #10b981;
+            font-size: 0.875rem;
+            height: 1.25rem;
+        }
+        
+        /* Map */
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 16rem;
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .map-title {
+            font-size: 1.125rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .map-title svg {
+            margin-right: 0.5rem;
+        }
+        
+        .map {
+            position: absolute;
+            inset: 0;
+            background-color: #e5e7eb;
+        }
+        
+        .map svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .map-attribution {
+            position: absolute;
+            bottom: 0.25rem;
+            right: 0.25rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        /* Run History */
+        .history-title {
+            font-size: 1.125rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .history-list {
+            max-height: 16rem;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-details {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #e5e7eb;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .stats-grid {
+                gap: 0.5rem;
+            }
+            
+            .stat-value {
+                font-size: 1.25rem;
+            }
+            
+            .btn-round {
+                width: 3rem;
+                height: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Run Tracker</h1>
+    </header>
+    
+    <main>
+        <!-- Permission Alert -->
+        <div id="permissionAlert" class="permission-alert">
+            <div class="icon-text">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <p>La posizione è necessaria per tracciare la tua corsa.</p>
+            </div>
+            <button id="requestPermission" class="btn-start" style="border-radius: 0.25rem; padding: 0.5rem 1rem;">
+                Richiedi Permesso
+            </button>
+        </div>
+        
+        <!-- Stats Card -->
+        <div class="card">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <p class="stat-label">Tempo</p>
+                    <p id="time" class="stat-value">00:00</p>
+                </div>
+                <div class="stat-box">
+                    <p class="stat-label">Distanza</p>
+                    <p id="distance" class="stat-value">0.00 km</p>
+                </div>
+                <div class="stat-box">
+                    <p class="stat-label">Passo</p>
+                    <p id="pace" class="stat-value">--:--</p>
+                </div>
+                <div class="stat-box">
+                    <p class="stat-label">Calorie</p>
+                    <p id="calories" class="stat-value">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controls Card -->
+        <div class="card">
+            <div id="startControls" class="controls">
+                <button id="startBtn" class="btn-round btn-start" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </button>
+                <button id="resetBtn" class="btn-round btn-reset" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                </button>
+                <button id="saveBtn" class="btn-round btn-save" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                </button>
+            </div>
+            <div id="runningControls" class="controls" style="display: none;">
+                <button id="pauseBtn" class="btn-round btn-pause">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                </button>
+                <button id="stopBtn" class="btn-round btn-stop">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    </svg>
+                </button>
+            </div>
+            <div id="pausedControls" class="controls" style="display: none;">
+                <button id="resumeBtn" class="btn-round btn-start">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </button>
+                <button id="stopPausedBtn" class="btn-round btn-stop">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    </svg>
+                </button>
+            </div>
+            <p id="saveStatus" class="save-status"></p>
+        </div>
+        
+        <!-- Map Card -->
+        <div class="card">
+            <h2 class="map-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                    <line x1="9" y1="3" x2="9" y2="18"></line>
+                    <line x1="15" y1="6" x2="15" y2="21"></line>
+                </svg>
+                Percorso
+            </h2>
+            <div class="map-container">
+                <div id="map" class="map">
+                    <svg id="routeMap" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                        <!-- Grid background -->
+                        <defs>
+                            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#d4d4d4" stroke-width="0.5" />
+                            </pattern>
+                        </defs>
+                        <rect width="100" height="100" fill="url(#grid)" />
+                        
+                        <!-- Route will be drawn here by JavaScript -->
+                        <g id="routePath"></g>
+                        
+                        <!-- Default message -->
+                        <text id="mapMessage" x="50" y="50" text-anchor="middle" fill="#666">
+                            Inizia a correre per vedere il tuo percorso
+                        </text>
+                    </svg>
+                </div>
+                <div id="mapAttribution" class="map-attribution"></div>
+            </div>
+        </div>
+        
+        <!-- Run History Card -->
+        <div id="historyCard" class="card" style="display: none;">
+            <h2 class="history-title">Cronologia Corse</h2>
+            <div id="historyList" class="history-list">
+                <!-- History items will be added here by JavaScript -->
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>Run Tracker &copy; <span id="year"></span></p>
+    </footer>
+    
+    <script>
+        // DOM Elements
+        const permissionAlert = document.getElementById('permissionAlert');
+        const requestPermissionBtn = document.getElementById('requestPermission');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const stopPausedBtn = document.getElementById('stopPausedBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        
+        const timeDisplay = document.getElementById('time');
+        const distanceDisplay = document.getElementById('distance');
+        const paceDisplay = document.getElementById('pace');
+        const caloriesDisplay = document.getElementById('calories');
+        
+        const startControls = document.getElementById('startControls');
+        const runningControls = document.getElementById('runningControls');
+        const pausedControls = document.getElementById('pausedControls');
+        
+        const saveStatus = document.getElementById('saveStatus');
+        const mapMessage = document.getElementById('mapMessage');
+        const routePath = document.getElementById('routePath');
+        const mapAttribution = document.getElementById('mapAttribution');
+        
+        const historyCard = document.getElementById('historyCard');
+        const historyList = document.getElementById('historyList');
+        
+        // Set current year in footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+        
+        // App State
+        let state = {
+            permission: 'prompt',  // 'prompt', 'granted', 'denied'
+            isRunning: false,
+            isPaused: false,
+            elapsedTime: 0,
+            distance: 0,
+            currentPace: 0,
+            calories: 0,
+            routePoints: [],
+            currentLocation: null,
+            runs: []
+        };
+        
+        // Refs (for timers, etc.)
+        let watchId = null;
+        let startTime = null;
+        let timerInterval = null;
+        let lastLocation = null;
+        
+        // Constants
+        const WEIGHT_KG = 70; // Default weight
+        const MET_RUNNING = 7; // Metabolic equivalent for running
+        
+        // Initialize
+        function init() {
+            checkLocationPermission();
+            loadRunHistory();
+            
+            // Event listeners
+            requestPermissionBtn.addEventListener('click', requestLocationPermission);
+            startBtn.addEventListener('click', startRun);
+            pauseBtn.addEventListener('click', pauseRun);
+            resumeBtn.addEventListener('click', resumeRun);
+            stopBtn.addEventListener('click', stopRun);
+            stopPausedBtn.addEventListener('click', stopRun);
+            resetBtn.addEventListener('click', resetRun);
+            saveBtn.addEventListener('click', saveRun);
+        }
+        
+        // Check location permission
+        function checkLocationPermission() {
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'geolocation' })
+                    .then(result => {
+                        updatePermissionState(result.state);
+                        
+                        // Listen for permission changes
+                        result.onchange = () => {
+                            updatePermissionState(result.state);
+                        };
+                    })
+                    .catch(error => {
+                        console.error('Error checking location permission:', error);
+                    });
+            } else {
+                // Fallback for browsers that don't support permission API
+                if (navigator.geolocation) {
+                    updatePermissionState('prompt');
+                } else {
+                    updatePermissionState('denied');
+                }
+            }
+        }
+        
+        // Request location permission
+        function requestLocationPermission() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        updatePermissionState('granted');
+                    },
+                    error => {
+                        console.error('Error getting location:', error);
+                        updatePermissionState('denied');
+                    }
+                );
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+                updatePermissionState('denied');
+            }
+        }
+        
+        // Update permission state
+        function updatePermissionState(newState) {
+            state.permission = newState;
+            
+            if (newState === 'granted') {
+                permissionAlert.style.display = 'none';
+                startBtn.disabled = false;
+            } else {
+                permissionAlert.style.display = 'flex';
+                startBtn.disabled = true;
+                
+                if (newState === 'denied') {
+                    permissionAlert.querySelector('p').textContent = 
+                        'Permesso di posizione negato. Abilita i servizi di localizzazione.';
+                } else {
+                    permissionAlert.querySelector('p').textContent = 
+                        'La posizione è necessaria per tracciare la tua corsa.';
+                }
+            }
+        }
+        
+        // Format time as MM:SS or HH:MM:SS
+        function formatTime(timeInSeconds) {
+            const hours = Math.floor(timeInSeconds / 3600);
+            const minutes = Math.floor((timeInSeconds % 3600) / 60);
+            const seconds = Math.floor(timeInSeconds % 60);
+            
+            if (hours > 0) {
+                return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+            }
+            return `${padZero(minutes)}:${padZero(seconds)}`;
+        }
+        
+        // Format pace as MM:SS per km
+        function formatPace(paceInMinPerKm) {
+            if (paceInMinPerKm === 0 || !isFinite(paceInMinPerKm)) {
+                return '--:--';
+            }
+            
+            const minutes = Math.floor(paceInMinPerKm);
+            const seconds = Math.floor((paceInMinPerKm - minutes) * 60);
+            
+            return `${padZero(minutes)}:${padZero(seconds)}`;
+        }
+        
+        // Pad with leading zero if needed
+        function padZero(num) {
+            return num.toString().padStart(2, '0');
+        }
+        
+        // Calculate distance between two points using Haversine formula
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the Earth in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c; // Distance in km
+            return distance;
+        }
+        
+        // Get map bounds for the route points
+        function getRouteBounds(points) {
+            if (!points || points.length === 0) return null;
+            
+            let minLat = points[0].latitude;
+            let maxLat = points[0].latitude;
+            let minLng = points[0].longitude;
+            let maxLng = points[0].longitude;
+            
+            points.forEach(point => {
+                minLat = Math.min(minLat, point.latitude);
+                maxLat = Math.max(maxLat, point.latitude);
+                minLng = Math.min(minLng, point.longitude);
+                maxLng = Math.max(maxLng, point.longitude);
+            });
+            
+            return {
+                minLat,
+                maxLat,
+                minLng,
+                maxLng,
+                center: {
+                    latitude: (minLat + maxLat) / 2,
+                    longitude: (minLng + maxLng) / 2
+                },
+                // Add padding to bounds
+                padded: {
+                    minLat: minLat - (maxLat - minLat) * 0.1,
+                    maxLat: maxLat + (maxLat - minLat) * 0.1,
+                    minLng: minLng - (maxLng - minLng) * 0.1,
+                    maxLng: maxLng + (maxLng - minLng) * 0.1
+                }
+            };
+        }
+        
+        // Simplify route for storage efficiency
+        function simplifyRoute(points, tolerance = 0.0001) {
+            if (points.length <= 2) return points;
+            
+            // Basic Douglas-Peucker algorithm
+            const result = [points[0]];
+            let maxDist = 0;
+            let maxIndex = 0;
+            
+            for (let i = 1; i < points.length - 1; i++) {
+                const dist = perpendicularDistance(
+                    points[i], 
+                    points[0], 
+                    points[points.length - 1]
+                );
+                
+                if (dist > maxDist) {
+                    maxDist = dist;
+                    maxIndex = i;
+                }
+            }
+            
+            if (maxDist > tolerance) {
+                const firstHalf = simplifyRoute(points.slice(0, maxIndex + 1), tolerance);
+                const secondHalf = simplifyRoute(points.slice(maxIndex), tolerance);
+                return [...firstHalf.slice(0, -1), ...secondHalf];
+            } else {
+                return [points[0], points[points.length - 1]];
+            }
+        }
+        
+        // Helper for route simplification
+        function perpendicularDistance(point, lineStart, lineEnd) {
+            const dx = lineEnd.longitude - lineStart.longitude;
+            const dy = lineEnd.latitude - lineStart.latitude;
+            
+            // Normalize
+            const mag = Math.sqrt(dx * dx + dy * dy);
+            if (mag > 0) {
+                const norm = { x: dx / mag, y: dy / mag };
+                
+                // Vector from start to point
+                const startToPoint = {
+                    x: point.longitude - lineStart.longitude,
+                    y: point.latitude - lineStart.latitude
+                };
+                
+                // Dot product gives projected distance along line
+                const projectedDist = startToPoint.x * norm.x + startToPoint.y * norm.y;
+                
+                // Calculate perpendicular distance
+                const projectedPoint = {
+                    x: lineStart.longitude + norm.x * projectedDist,
+                    y: lineStart.latitude + norm.y * projectedDist
+                };
+                
+                const distance = Math.sqrt(
+                    Math.pow(point.longitude - projectedPoint.x, 2) +
+                    Math.pow(point.latitude - projectedPoint.y, 2)
+                );
+                
+                return distance;
+            }
+            
+            return 0;
+        }
+        
+        // Update the SVG map
+        function updateMap() {
+            if (state.routePoints.length <= 1) {
+                mapMessage.style.display = '';
+                routePath.innerHTML = '';
+                return;
+            }
+            
+            // Hide the message
+            mapMessage.style.display = 'none';
+            
+            // Get bounds
+            const bounds = getRouteBounds(state.routePoints);
+            if (!bounds) return;
+            
+            const { minLat, maxLat, minLng, maxLng } = bounds.padded;
+            const latRange = maxLat - minLat || 0.0001; // Avoid division by zero
+            const lngRange = maxLng - minLng || 0.0001;
+            
+            // Map function to convert GPS to SVG coordinates
+            const mapToSvg = (point) => {
+                const x = ((point.longitude - minLng) / lngRange) * 80 + 10;
+                const y = 90 - ((point.latitude - minLat) / latRange) * 80;
+                return { x, y };
+            };
+            
+            // Create SVG path
+            const pathPoints = state.routePoints.map((point, index) => {
+                const { x, y } = mapToSvg(point);
+                return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+            }).join(' ');
+            
+            // Get start and end points
+            const start = mapToSvg(state.routePoints[0]);
+            const end = mapToSvg(state.routePoints[state.routePoints.length - 1]);
+            
+            // Build HTML for route elements
+            routePath.innerHTML = `
+                <path 
+                    d="${pathPoints}"
+                    stroke="#3b82f6"
+                    stroke-width="3"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+                
+                <!-- Start point -->
+                <circle 
+                    cx="${start.x}" 
+                    cy="${start.y}" 
+                    r="2.5" 
+                    fill="green" 
+                    stroke="white"
+                    stroke-width="1"
+                />
+                
+                <!-- Current/end point -->
+                <circle 
+                    cx="${end.x}" 
+                    cy="${end.y}" 
+                    r="2.5" 
+                    fill="red" 
+                    stroke="white"
+                    stroke-width="1"
+                />
+                
+                ${state.isRunning && !state.isPaused ? `
+                <!-- Current location pulsing dot -->
+                <circle 
+                    cx="50" 
+                    cy="50" 
+                    r="4" 
+                    fill="#4299e1"
+                    opacity="0.7"
+                >
+                    <animate 
+                        attributeName="r" 
+                        values="3;6;3" 
+                        dur="2s" 
+                        repeatCount="indefinite" 
+                    />
+                    <animate 
+                        attributeName="opacity" 
+                        values="0.7;0.2;0.7" 
+                        dur="2s" 
+                        repeatCount="indefinite" 
+                    />
+                </circle>
+                <circle 
+                    cx="50" 
+                    cy="50" 
+                    r="2.5" 
+                    fill="#3182ce"
+                    stroke="white"
+                    stroke-width="1"
+                />
+                ` : ''}
+            `;
+            
+            // Update map attribution
+            mapAttribution.textContent = state.isRunning && state.routePoints.length > 0 ? 
+                `${state.routePoints.length} punti GPS registrati` : '';
+        }
+        
+        // Start the run
+        function startRun() {
+            if (state.permission !== 'granted') {
+                requestLocationPermission();
+                return;
+            }
+            
+            state.isRunning = true;
+            state.isPaused = false;
+            saveStatus.textContent = '';
+            
+            // Update UI
+            startControls.style.display = 'none';
+            runningControls.style.display = 'flex';
+            pausedControls.style.display = 'none';
+            
+            // Set start time
+            if (!startTime) {
+                startTime = Date.now() - (state.elapsedTime * 1000);
+            } else if (state.isPaused) {
+                // Adjust start time to account for paused duration
+                startTime = Date.now() - (state.elapsedTime * 1000);
+            }
+            
+            // Start timer
+            timerInterval = setInterval(() => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                state.elapsedTime = elapsed;
+                
+                // Update UI
+                timeDisplay.textContent = formatTime(elapsed);
+                
+                // Update calories burned
+                // Formula: calories = MET * weight in kg * time in hours
+                const hoursElapsed = elapsed / 3600;
+                const caloriesBurned = MET_RUNNING * WEIGHT_KG * hoursElapsed;
+                state.calories = Math.round(caloriesBurned);
+                caloriesDisplay.textContent = state.calories;
+            }, 1000);
+            
+            // Start location tracking
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    state.currentLocation = { latitude, longitude, timestamp: Date.now() };
+                    
+                    // Add point to route
+                    state.routePoints.push(state.currentLocation);
+                    
+                    // Calculate incremental distance if we have a previous point
+                    if (lastLocation) {
+                        const newDistance = calculateDistance(
+                            lastLocation.latitude,
+                            lastLocation.longitude,
+                            latitude,
+                            longitude
+                        );
+                        
+                        // Only add distance if it's reasonable (to filter out GPS jumps)
+                        if (newDistance < 0.1) { // Less than 100m between points
+                            state.distance += newDistance;
+                            distanceDisplay.textContent = state.distance.toFixed(2) + ' km';
+                            
+                            // Update pace (min/km)
+                            if (state.elapsedTime > 0 && state.distance > 0) {
+                                state.currentPace = (state.elapsedTime / 60) / state.distance;
+                                paceDisplay.textContent = formatPace(state.currentPace);
+                            }
+                        }
+                    }
+                    
+                    lastLocation = state.currentLocation;
+                    
+                    // Update map
+                    updateMap();
+                },
+                (error) => {
+                    console.error('Error getting location:', error);
+                    alert(`Errore di posizione: ${error.message}`);
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 5000
+                }
+            );
+        }
+        
+        // Resume the paused run
+        function resumeRun() {
+            startRun();
+        }
+        
+        // Pause the run
+        function pauseRun() {
+            state.isPaused = true;
+            
+            // Update UI
+            startControls.style.display = 'none';
+            runningControls.style.display = 'none';
+            pausedControls.style.display = 'flex';
+            
+            // Clear intervals
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // Stop location tracking temporarily
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            
+            // Update map to remove pulsing dot
+            updateMap();
+        }
+        
+        // Stop and reset the run
+        function stopRun() {
+            // Clear intervals and watches
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            
+            state.isRunning = false;
+            state.isPaused = false;
+            
+            // Update UI
+            startControls.style.display = 'flex';
+            runningControls.style.display = 'none';
+            pausedControls.style.display = 'none';
+            resetBtn.disabled = false;
+            saveBtn.disabled = state.elapsedTime === 0;
+            
+            // Update map to remove pulsing dot
+            updateMap();
+        }
+        
+        // Reset the run data
+        function resetRun() {
+            stopRun();
+            
+            // Reset all run data
+            state.elapsedTime = 0;
+            state.distance = 0;
+            state.currentPace = 0;
+            state.calories = 0;
+            state.routePoints = [];
+            startTime = null;
+            lastLocation = null;
+            saveStatus.textContent = '';
+            
+            // Update UI
+            timeDisplay.textContent = '00:00';
+            distanceDisplay.textContent = '0.00 km';
+            paceDisplay.textContent = '--:--';
+            caloriesDisplay.textContent = '0';
+            resetBtn.disabled = true;
+            saveBtn.disabled = true;
+            
+            // Clear map
+            updateMap();
+        }
+        
+        // Save the run
+        function saveRun() {
+            if (!state.isRunning && state.elapsedTime > 0) {
+                // Simplify route points for storage efficiency
+                const simplifiedRoute = simplifyRoute(state.routePoints, 0.0001);
+                
+                const runData = {
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString(),
+                    duration: state.elapsedTime,
+                    distance: state.distance,
+                    pace: state.distance > 0 ? (state.elapsedTime / 60) / state.distance : 0,
+                    calories: state.calories,
+                    routePoints: simplifiedRoute,
+                    bounds: getRouteBounds(state.routePoints)
+                };
+                
+                state.runs.push(runData);
+                
+                // Save to local storage
+                localStorage.setItem('runHistory', JSON.stringify(state.runs));
+                saveStatus.textContent = 'Corsa salvata con successo!';
+                
+                // Update history display
+                updateHistoryDisplay();
+            }
+        }
+        
+        // Load run history from local storage
+        function loadRunHistory() {
+            const savedRuns = localStorage.getItem('runHistory');
+            if (savedRuns) {
+                state.runs = JSON.parse(savedRuns);
+                updateHistoryDisplay();
+            }
+        }
+        
+        // Update history display
+        function updateHistoryDisplay() {
+            if (state.runs.length > 0) {
+                historyCard.style.display = 'block';
+                
+                historyList.innerHTML = state.runs.map(run => `
+                    <div class="history-item">
+                        <div class="history-row">
+                            <span>${run.date}</span>
+                            <span>${run.distance.toFixed(2)} km</span>
+                        </div>
+                        <div class="history-row history-details">
+                            <span>${formatTime(run.duration)}</span>
+                            <span>${formatPace(run.pace)} /km</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                historyCard.style.display = 'none';
+            }
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
